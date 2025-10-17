@@ -15,7 +15,6 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12 /usr/local/lib/python3.12
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY app ./app
-COPY .env .env
 
 EXPOSE 8080
 
