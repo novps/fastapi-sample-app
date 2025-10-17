@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NoVPS To-Do App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen p-8">
+
+  <h1 class="text-3xl font-bold mb-6">🧾 NoVPS To-Do List</h1>
+
+  <div class="w-full max-w-md mb-6">
+    <p class="mb-3">This application is a demonstration project built to showcase how easily you can deploy a FastAPI application connected to a managed PostgreSQL database using NoVPS.io.</p>
+    <p class="mb-3">It illustrates the core workflow of running a real-world web app on NoVPS — including API endpoints, database integration, and a simple Tailwind-based frontend.</p>
+    <p class="mb-3">Use this example as a reference for your own deployments, whether you’re launching microservices, dashboards, or internal tools.</p>
+  </div>
+
+  <div class="bg-white shadow-lg rounded-xl w-full max-w-md p-6">
+    <form id="todo-form" class="flex gap-2 mb-4">
+      <input id="title" type="text" placeholder="New task..."
+             class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200" required />
+      <button class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition">Add</button>
+    </form>
+
+    <ul id="todo-list" class="space-y-2"></ul>
+  </div>
+
+  <footer class="mt-8 text-gray-500 text-sm">
+    Powered by <a href="https://novps.io" target="_blank" class="font-semibold text-indigo-500">NoVPS.io</a>
+  </footer>
+
+  <script>
+    const API = '/todos';
+    const form = document.getElementById('todo-form');
+    const list = document.getElementById('todo-list');
+
+    async function fetchTodos() {
+      const res = await fetch(API);
+      const todos = await res.json();
+      list.innerHTML = '';
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = "flex items-center justify-between bg-gray-50 border rounded-lg px-4 py-2";
+        li.innerHTML = `
+          <span class="${todo.completed ? 'line-through text-gray-400' : ''}">${todo.title}</span>
+          <div class="flex gap-2">
+            <button onclick="toggle(${todo.id}, ${!todo.completed})" class="text-sm text-blue-600 hover:underline">
+              ${todo.completed ? 'Undo' : 'Done'}
+            </button>
+            <button onclick="remove(${todo.id})" class="text-sm text-red-600 hover:underline">Delete</button>
+          </div>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function toggle(id, completed) {
+      await fetch(`${API}/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({completed})
+      });
+      fetchTodos();
+    }
+
+    async function remove(id) {
+      await fetch(`${API}/${id}`, {method: 'DELETE'});
+      fetchTodos();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      if (!title) return;
+      await fetch(API, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title})
+      });
+      form.reset();
+      fetchTodos();
+    });
+
+    fetchTodos();
+  </script>
+
+</body>
+</html>
